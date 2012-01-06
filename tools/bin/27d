@@ -1,0 +1,30 @@
+#!/bin/bash
+export PATH=/home/kr1100/tools/bin:$PATH
+
+CODEBASE_DIR=/home/kr1100/workspace/w27_1097
+PROJECT_NAME=adolf_wg
+
+DOWN_BOOT="fastboot flash boot ${CODEBASE_DIR}/out/target/product/${PROJECT_NAME}/boot.img"
+DOWN_SYSTEM="fastboot flash system ${CODEBASE_DIR}/out/target/product/${PROJECT_NAME}/system.img"
+DOWN_USER="fastboot flash userdata ${CODEBASE_DIR}/out/target/product/${PROJECT_NAME}/userdata.img"
+REBOOT="fastboot reboot"
+
+usage()
+{
+	echo -e "27d usage..."
+	echo -e "\t--boot \n\t\tdownload boot image only"
+	echo -e "\t--system \n\t\tdownload system image only"
+	echo -e "\t--userdata \n\t\tdownload userdata image only"
+}
+
+if [ $# -gt 1 ]; then
+	usage
+fi
+
+adb reboot-bootloader
+[ $# == 0 ] && ${DOWN_SYSTEM} && ${DOWN_BOOT} && ${DOWN_USER} && down=1
+[ $# == 1 ] && [ $1 == "--boot" ] && ${DOWN_BOOT} && down=1
+[ $# == 1 ] && [ $1 == "--system" ] && ${DOWN_SYSTEM} && down=1
+[ $# == 1 ] && [ $1 == "--userdata" ] && ${DOWN_USER} && down=1
+[ $down -ne 1 ] && usage
+${REBOOT}

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+gnome-settings-daemon &
+gnome-terminal --geometry 120x40

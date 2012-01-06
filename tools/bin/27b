@@ -1,0 +1,12 @@
+#!/bin/bash
+export PATH=/home/david/tools/bin:$PATH
+
+CODEBASE_DIR=/home/david/w27/w27_1098_android
+PRODUCT_NAME=adolf_wg
+
+cd ${CODEBASE_DIR}
+
+source build/envsetup.sh
+choosecombo Device release ${PRODUCT_NAME} eng
+echo $@
+make $@

@@ -1,0 +1,44 @@
+#!/bin/bash
+#auto create tags and cscope files in project dir and modify the vimrc
+#This script need one arg which should be a diretory
+
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+
+#backup .vimrc
+if [ -f /home/zdavid/.vimrc ]; then
+	cp /home/zdavid/.vimrc /home/zdavid/.vimrc.bakup
+	sed '/^set tags/d' /home/zdavid/.vimrc.bakup >/home/zdavid/.vimrc
+	sed '/^cs add/d' /home/zdavid/.vimrc >/home/zdavid/tmp
+	mv /home/zdavid/tmp /home/zdavid/.vimrc
+fi
+
+if [ -n $1 ]; then
+	cd $1
+fi
+
+if `ls |grep -q tags`;then
+	:
+else ctags -R
+fi
+
+if `ls |grep -q cscope`;then
+	:	
+else cscope -Rbq  2> /dev/null
+fi
+
+current_dir=`pwd`
+TAGS="${current_dir}/tags"
+CSCOPE="${current_dir}/cscope.out"
+#echo $current_dir
+#echo $TAGS
+#echo $CSCOPE
+
+#add to vimrc
+if [ -f $TAGS ];then
+	echo "set tags=$TAGS" >> /home/zdavid/.vimrc
+fi
+
+if [ -f $CSCOPE ];then
+	echo -n "cs add $CSCOPE " >> /home/zdavid/.vimrc
+	echo $current_dir >> /home/zdavid/.vimrc
+fi

@@ -1,0 +1,62 @@
+#!/bin/sh
+
+if [ $# != 1 ]; then
+	echo "Usage:"
+	echo "\tGo where your kernel source code located and then hit the command below."
+	echo "\t'$0 .'" 
+	exit
+fi
+
+#arm-eabi version
+ARM_VER=4.4.0
+
+export PATH=`pwd`/../out/host/linux-x86/bin:$PATH
+export PATH=`pwd`/../prebuilt/linux-x86/toolchain/arm-eabi-${ARM_VER}/bin:$PATH
+
+PRODUCT_NAME=msm7627a
+KERN_CONF=msm7627a-perf_defconfig
+
+# the kernel source folder
+KERNEL_SRC=`pwd`/
+
+# the folder to put kernel object file
+KERNEL_DEST=`pwd`/../out/target/product/${PRODUCT_NAME}/obj/KERNEL_OBJ
+
+# the generated boot.img
+BOOT_IMG=`pwd`/../out/target/product/${PRODUCT_NAME}/boot.img
+CMD_LINE="console=ttyMSM2,115200n8 loglevel=8 no_console_suspend androidboot.hardware=qcom"
+CMD_LINE2="console=ttyMSM0 no_console_suspend androidboot.hardware=qcom"
+#7x30
+CMD_LINE3="console=ttyDCC0 androidboot.hardware=qcom --base 0x00200000 --pagesize 4096"
+# --base 0x00200000 --pagesize 4096 --ramdisk"
+
+#making ramdisk...
+#the ramdisk folder
+RAMDISK_SRC=`pwd`/../out/target/product/${PRODUCT_NAME}/root/
+
+#the generated ramdisk file
+RAMDISK_IMG=`pwd`/../out/target/product/${PRODUCT_NAME}/ramdisk.img
+
+#backup old ramdisk file
+echo "mv ${RAMDISK_IMG} ${RAMDISK_IMG}.old"
+mv ${RAMDISK_IMG} ${RAMDISK_IMG}.old
+
+echo "build new $RAMDISK_IMG from $RAMDISK_SRC"
+mkbootfs $RAMDISK_SRC | gzip > $RAMDISK_IMG
+
+
+#building kernel...
+rm -vf `pwd`/../out/target/product/${PRODUCT_NAME}/obj/KERNEL_OBJ/.config
+cp -vf ./arch/arm/configs/${KERN_CONF} ../out/target/product/${PRODUCT_NAME}/obj/KERNEL_OBJ/.config
+
+make ARCH=arm O=${KERNEL_DEST} ${KERN_CONF}
+make mrproper
+make ARCH=arm O=${KERNEL_DEST} CROSS_COMPILE=arm-eabi- 
+
+echo `ls -l ${KERNEL_DEST}/arch/arm/boot/zImage`
+# backup old boot.img
+echo "mv $BOOT_IMG $BOOT_IMG.old"
+mv $BOOT_IMG $BOOT_IMG.old
+
+#echo "build new $BOOT_IMG from $KERNEL_DEST/arch/arm/boot/zImage and $RAMDISK_IMG"
+#mkbootimg --kernel $KERNEL_DEST/arch/arm/boot/zImage --ramdisk $RAMDISK_IMG --cmdline "$CMD_LINE3" --output $BOOT_IMG

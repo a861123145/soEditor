@@ -1,0 +1,38 @@
+#!/bin/bash
+
+ROOT_DIR=`pwd`
+COLOR_RED_BEGIN="\033[0;31;40m"
+COLOR_GREEN_BEGIN="\033[0;32;40m"
+COLOR_YELLOW_BEGIN="\033[0;33;40m"
+COLOR_BLUE_BEGIN="\033[0;34;40m"
+COLOR_PURPLE_BEGIN="\033[0;35;40m"
+COLOR_WHITE_BEGIN="\033[0;37;40m"
+COLOR_END="\033[0m"
+
+echo -e -n ${COLOR_RED_BEGIN}
+echo ${ROOT_DIR}
+echo -e -n ${COLOR_GREEN_BEGIN}
+echo -e -n "Root directory to make git repo [Y/y]: ${COLOR_END}"
+read user_yes
+
+if [ "${user_yes}" != "Y" -a "${user_yes}" != "y" ]; then
+    exit
+fi
+
+CHILDS_ROOT=`ls ${ROOT_DIR}`
+echo "${CHILDS_ROOT}"
+
+#for loop
+for dir in ${CHILDS_ROOT}
+do
+    echo $dir
+    if [ -d $dir ]; then
+        cd $dir
+        git init .
+        git add .
+        git commit -m "init $dir."
+        git branch ics-2015
+        cd ${ROOT_DIR}
+        git clone --bare $dir ${dir}.git
+	fi
+done
